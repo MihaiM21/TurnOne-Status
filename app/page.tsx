@@ -1,65 +1,198 @@
-import Image from "next/image";
+"use client";
+
+import Link from "next/link";
+import { useMemo, useCallback, useState } from "react";
+import { useHealthStatus } from "@/hooks/use-health-status";
+import EcosystemGlobe from "@/components/globe";
+import { Cpu, Globe, Monitor, Smartphone, Code, Brain, ChevronDown } from "lucide-react";
+
+interface ServiceInfo {
+  name: string;
+  description: string;
+  status: "operational" | "degraded" | "down";
+  icon: typeof Globe;
+  details: string[];
+  isInternalOnly?: boolean;
+}
+
+const statusDot = {
+  operational: "bg-success",
+  degraded: "bg-degraded",
+  down: "bg-destructive",
+};
 
 export default function Home() {
+  const { lastUpdate, services: healthServices } = useHealthStatus();
+  const [expanded, setExpanded] = useState(false);
+
+  const getTimeAgo = (date: Date) => {
+    const seconds = Math.floor((new Date().getTime() - date.getTime()) / 1000);
+    if (seconds < 60) return "just now";
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) return `${minutes}m ago`;
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) return `${hours}h ago`;
+    return date.toLocaleDateString();
+  };
+
+  const services = useMemo<ServiceInfo[]>(() => {
+    const iconMap: Record<string, typeof Globe> = {
+      "Production API": Code,
+      "Development API": Cpu,
+    };
+
+    const realServices = healthServices.map((h) => ({
+      name: h.name,
+      description: `${h.environment || "production"} environment · ${h.uptime}% uptime`,
+      status: h.status,
+      icon: iconMap[h.name] || Code,
+      details: h.checks
+        ? Object.entries(h.checks)
+            .filter(([, v]) => typeof v === "string")
+            .slice(0, 3)
+            .map(([key, value]) => `${key}: ${value}`)
+        : [`Response: ${h.response}`, `Version: ${h.version || "N/A"}`],
+    }));
+
+    const mockServices: ServiceInfo[] = [
+      {
+        name: "Web Platform",
+        description: "Dashboard & website · 99.99% uptime",
+        status: "operational",
+        icon: Globe,
+        details: ["120ms load time", "CDN distributed", "SSR enabled"],
+      },
+      {
+        name: "Mobile App",
+        description: "iOS & Android · 99.95% uptime",
+        status: "operational",
+        icon: Smartphone,
+        details: ["89ms avg response", "Push notifications active", "v4.2.1 latest"],
+        isInternalOnly: true,
+      },
+      {
+        name: "Desktop App",
+        description: "Windows, macOS, Linux · 99.97% uptime",
+        status: "operational",
+        icon: Monitor,
+        details: ["Native performance", "Auto-updates enabled", "v3.8.0 latest"],
+        isInternalOnly: true,
+      },
+      {
+        name: "AI Services",
+        description: "ML inference & training · 99.90% uptime",
+        status: "operational",
+        icon: Brain,
+        details: ["GPU clusters active", "Model v2.4 deployed", "Batch processing OK"],
+        isInternalOnly: true,
+      },
+    ];
+
+    return [...realServices, ...mockServices];
+  }, [healthServices]);
+
+  const ServiceCard = ({ service }: { service: ServiceInfo }) => {
+    const Icon = service.icon;
+    return (
+      <div
+        className={`bg-card/50 border rounded-lg p-3 transition-all duration-300 cursor-default text-sm ${
+          service.isInternalOnly
+            ? "border-amber-900/50 hover:border-amber-800/50"
+            : "border-border hover:border-primary/20"
+        }`}
+      >
+        <div className="flex items-center gap-2 mb-1">
+          <div className="w-6 h-6 rounded-md bg-secondary flex items-center justify-center flex-shrink-0">
+            <Icon className="w-3 h-3 text-muted-foreground" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-medium text-foreground truncate">{service.name}</span>
+              <div className={`w-1.5 h-1.5 rounded-full ${statusDot[service.status]} shrink-0`} />
+            </div>
+          </div>
+        </div>
+        <p className="text-xs text-muted-foreground line-clamp-2 mb-1">{service.description}</p>
+        {service.isInternalOnly && (
+          <div className="inline-block px-1.5 py-0.5 bg-amber-500/20 border border-amber-500/50 rounded text-xs font-semibold text-amber-400">
+            INTERNAL
+          </div>
+        )}
+      </div>
+    );
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <div className="min-h-screen w-full text-white flex flex-col relative">
+      {/* Header */}
+      <div className="flex items-center justify-between px-6 py-4 border-zinc-900">
+        <div className="flex items-center gap-2">
+          <Link
+            href="/details"
+            className="px-3 py-1.5 text-xs font-medium text-foreground bg-background border border-foreground/20 rounded hover:bg-primary/30 transition-colors"
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            Details
+          </Link>
         </div>
-      </main>
+        <div className="text-xs text-zinc-500">Updated {getTimeAgo(lastUpdate)}</div>
+      </div>
+
+      {/* Main Content */}
+      <div className="flex-1 flex items-center justify-center relative">
+        <div className="w-full flex items-center px-8">
+          {/* Left Cards */}
+          <div className="hidden lg:flex flex-col gap-3 w-[200px] max-h-[600px] overflow-y-auto">
+            {services.slice(0, Math.ceil(services.length / 2)).map((service) => (
+              <ServiceCard key={service.name} service={service} />
+            ))}
+          </div>
+
+          {/* Left Spacer */}
+          <div className="hidden lg:flex flex-1"></div>
+
+          {/* Center Globe */}
+          <div className="flex min-w-0 w-full max-w-3xl mx-auto">
+            <EcosystemGlobe />
+          </div>
+
+          {/* Right Spacer */}
+          <div className="hidden lg:flex flex-1"></div>
+
+          {/* Right Cards */}
+          <div className="hidden lg:flex flex-col gap-3 w-[200px] max-h-[600px] overflow-y-auto">
+            {services.slice(Math.ceil(services.length / 2)).map((service) => (
+              <ServiceCard key={service.name} service={service} />
+            ))}
+          </div>
+
+          {/* Mobile Services Toggle */}
+          <div className="lg:hidden flex flex-col items-center w-full">
+            <button
+              onClick={() => setExpanded((e) => !e)}
+              className="flex items-center gap-1.5 text-muted-foreground text-xs group hover:text-foreground transition-colors"
+            >
+              <span>{expanded ? "Collapse" : "View services"}</span>
+              <ChevronDown
+                className={`w-3.5 h-3.5 transition-transform duration-300 ${expanded ? "rotate-180" : ""}`}
+              />
+            </button>
+
+            {expanded && (
+              <div className="w-full grid gap-3 sm:grid-cols-2 mt-4 px-4">
+                {services.map((service) => (
+                  <ServiceCard key={service.name} service={service} />
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Footer */}
+      <div className="flex items-center justify-between px-6 py-4 border-zinc-900 text-xs text-zinc-600">
+        <span> </span>
+        <span>Powered by TurnOne</span>
+      </div>
     </div>
   );
 }
