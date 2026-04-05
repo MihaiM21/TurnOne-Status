@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { fetchAllHealthChecks, type ServiceHealth } from "@/lib/health-service";
+import type { ServiceHealth } from "@/lib/health-service";
 
 export function useHealthStatus() {
   const [services, setServices] = useState<ServiceHealth[]>([]);
@@ -11,7 +11,11 @@ export function useHealthStatus() {
     try {
       setLoading(true);
       setError(null);
-      const data = await fetchAllHealthChecks();
+      const response = await fetch("/api/health");
+      if (!response.ok) {
+        throw new Error("Failed to fetch health status");
+      }
+      const data = await response.json();
       setServices(data);
       setLastUpdate(new Date());
     } catch (err) {

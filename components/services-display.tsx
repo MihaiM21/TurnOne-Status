@@ -1,9 +1,10 @@
 "use client";
 
 import { useMemo, useCallback, useState } from "react";
-import { CheckCircle, ChevronDown, Cpu, Globe, Monitor, Smartphone, Code, Brain, ArrowRight } from "lucide-react";
+import { CheckCircle, ChevronDown, Cpu, Globe, Monitor, Smartphone, Code, Brain, ArrowRight, Book } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useHealthStatus } from "@/hooks/use-health-status";
+import { describe } from "node:test";
 
 interface ServiceInfo {
   name: string;
@@ -29,12 +30,14 @@ export default function ServicesDisplay() {
     const iconMap: Record<string, typeof Globe> = {
       "Production API": Code,
       "Development API": Cpu,
+      "Documentation": Book,
+      "Web Platform": Globe,
     };
 
     // Real health services
     const realServices = healthServices.map((h) => ({
       name: h.name,
-      description: `${h.environment || "production"} environment · ${h.uptime}% uptime`,
+      description: `Operational · ${h.uptime}% uptime`,
       status: h.status,
       icon: iconMap[h.name] || Code,
       details: h.checks
@@ -47,13 +50,6 @@ export default function ServicesDisplay() {
 
     // Mock services for other components
     const mockServices: ServiceInfo[] = [
-      {
-        name: "Web Platform",
-        description: "Dashboard & website · 99.99% uptime",
-        status: "operational",
-        icon: Globe,
-        details: ["120ms load time", "CDN distributed", "SSR enabled"],
-      },
       {
         name: "Mobile App",
         description: "iOS & Android · 99.95% uptime",

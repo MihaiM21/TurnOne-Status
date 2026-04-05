@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useMemo, useCallback, useState } from "react";
 import { useHealthStatus } from "@/hooks/use-health-status";
 import EcosystemGlobe from "@/components/globe";
-import { Cpu, Globe, Monitor, Smartphone, Code, Brain, ChevronDown } from "lucide-react";
+import { Cpu, Globe, Monitor, Smartphone, Code, Brain, ChevronDown, Book } from "lucide-react";
 
 interface ServiceInfo {
   name: string;
@@ -39,11 +39,13 @@ export default function Home() {
     const iconMap: Record<string, typeof Globe> = {
       "Production API": Code,
       "Development API": Cpu,
+      "Documentation": Book,
+      "Web Platform": Globe,
     };
 
     const realServices = healthServices.map((h) => ({
       name: h.name,
-      description: `${h.environment || "production"} environment · ${h.uptime}% uptime`,
+      description: `Operational · ${h.uptime}% uptime`,
       status: h.status,
       icon: iconMap[h.name] || Code,
       details: h.checks
@@ -55,13 +57,6 @@ export default function Home() {
     }));
 
     const mockServices: ServiceInfo[] = [
-      {
-        name: "Web Platform",
-        description: "Dashboard & website · 99.99% uptime",
-        status: "operational",
-        icon: Globe,
-        details: ["120ms load time", "CDN distributed", "SSR enabled"],
-      },
       {
         name: "Mobile App",
         description: "iOS & Android · 99.95% uptime",
