@@ -1,0 +1,8 @@
+# Automatic HTTPS (Let's Encrypt). With Cloudflare proxying (orange cloud) either keep the
+# record DNS-only (grey cloud), or use a Cloudflare Origin cert:
+#   tls /etc/caddy/origin.pem /etc/caddy/origin.key
+# (mount both files into the caddy service and set SSL/TLS to "Full (strict)").
+status.t1f1.com {
+	encode zstd gzip
+	reverse_proxy status:3000
+}
