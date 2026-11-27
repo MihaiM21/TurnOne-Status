@@ -1,0 +1,35 @@
+services:
+  status:
+    build: .
+    image: turnone-status:latest
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      # Loopback only: reachable through the reverse proxy, never directly from the internet.
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - status-data:/data
+
+  # Optional HTTPS reverse proxy: `docker compose --profile caddy up -d --build`
+  # Cloudflare caveat: Caddy's Let's Encrypt HTTP challenge needs the record to be
+  # DNS-only (grey cloud) at least for the first issuance. If you keep the orange cloud,
+  # use a Cloudflare Origin certificate instead (mount it and edit deploy/Caddyfile)
+  # with SSL/TLS mode "Full (strict)".
+  caddy:
+    image: caddy:2
+    profiles: ["caddy"]
+    restart: unless-stopped
+    depends_on:
+      - status
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./deploy/Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+
+volumes:
+  status-data:
+  caddy-data:
+  caddy-config:

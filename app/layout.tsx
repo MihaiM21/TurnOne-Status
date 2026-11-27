@@ -1,7 +1,6 @@
-import type { Metadata } from "next";
-import { Geist, Geist_Mono } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Barlow_Condensed, Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import ParticleBackground from "@/components/particle-background";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -13,9 +12,22 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const barlowCondensed = Barlow_Condensed({
+  variable: "--font-barlow",
+  subsets: ["latin"],
+  weight: ["500", "600", "700"],
+});
+
 export const metadata: Metadata = {
-  title: "Turn One Status",
-  description: "Real-time status dashboard for Turn One's services and APIs.",
+  metadataBase: new URL("https://status.t1f1.com"),
+  title: { default: "Turn One Status", template: "%s · Turn One Status" },
+  description:
+    "Live status of Turn One: sim racing telemetry, F1 live timing, the web app and the T1API.",
+};
+
+export const viewport: Viewport = {
+  themeColor: "#D40924",
+  colorScheme: "dark",
 };
 
 export default function RootLayout({
@@ -24,14 +36,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col relative ">
-        <ParticleBackground />
-        {children}
-      </body>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable} ${barlowCondensed.variable} h-full antialiased`}>
+      <body className="flex min-h-full flex-col bg-bg text-fg">{children}</body>
     </html>
   );
 }
